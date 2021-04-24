@@ -37,9 +37,7 @@ install() {
   if curl -fs "${download_url}" -o "${download_path}"; then
      
     echo "Checking signatures"
-    if $(check_sig $version); then
-        echo "OK"
-    else
+    if ! $(check_sig $version); then
       exit 100
     fi
 
