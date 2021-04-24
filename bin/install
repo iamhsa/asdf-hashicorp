@@ -110,7 +110,7 @@ check_sig() {
 
   cd $TMP_DOWNLOAD_DIR;
   gpg --verify-files $TMP_DOWNLOAD_DIR/$(basename $signature_url)
-  sha256sum --ignore-missing -c $TMP_DOWNLOAD_DIR/$(basename sha256sums_url)
+  sha256sum --ignore-missing -c $TMP_DOWNLOAD_DIR/$(basename $sha256sums_url)
   { echo "Verification ERROR" > /dev/stderr; exit 100 ; }
 }
 
