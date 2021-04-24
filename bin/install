@@ -105,8 +105,8 @@ check_sig() {
       --recv-keys "C874 011F 0AB4 0511 0D02 1055 3436 5D94 72D7 468F"
 
   cd $TMP_DOWNLOAD_DIR;
-  gpg --verify-files $TMP_DOWNLOAD_DIR/$(basename $signature_url)
-  sha256sum --ignore-missing -c $TMP_DOWNLOAD_DIR/$(basename $sha256sums_url)
+  gpg --verify-files $TMP_DOWNLOAD_DIR/$(basename $signature_url) &&\
+  sha256sum --ignore-missing -c $TMP_DOWNLOAD_DIR/$(basename $sha256sums_url) ||\
   { echo "Verification ERROR" > /dev/stderr; exit 100 ; }
 }
 
