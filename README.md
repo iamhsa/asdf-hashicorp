@@ -1,6 +1,6 @@
 # asdf-hashicorp
 
-[HashiCorp](https://www.hashicorp.com) plugin for asdf version manager
+[HashiCorp](https://www.hashicorp.com) plugin for asdf version manager, which can take signatures seriously.
 
 ## Build History
 
