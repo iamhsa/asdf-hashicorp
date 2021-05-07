@@ -23,6 +23,10 @@ TMP_DOWNLOAD_DIR="$(mktemp -d -t "asdf_${toolname}_XXXXXX")"
 readonly TMP_DOWNLOAD_DIR
 trap 'rm -rf "${TMP_DOWNLOAD_DIR?}"' EXIT
 
+# set Hashicorp url globally
+releases_host="https://releases.hashicorp.com"
+readonly releases_host
+
 install() {
   local -r install_type="$1"
   local -r version="$2"
@@ -38,9 +42,9 @@ install() {
 
   echo "Downloading ${toolname} version ${version} from ${download_url}"
   if curl -fs "${download_url}" -o "${download_path}"; then
-     
+
     echo "Checking signatures"
-    check_sig $version || exit 100
+    check_sig "${version}" || exit 100
 
     echo "Cleaning ${toolname} previous binaries"
     rm -rf "${bin_install_path:?}/${toolname}"
@@ -87,31 +91,35 @@ get_filename() {
 get_download_url() {
   local -r version="$1"
   local -r filename="$(get_filename "${version}")"
-  local -r releases_host="https://releases.hashicorp.com"
 
   if ! curl -fs "${releases_host}/${toolname}/${version}/${filename}" >/dev/null && [[ ${filename} == *"arm64"* ]]; then
-    echo "https://releases.hashicorp.com/${toolname}/${version}/${filename//arm64/arm}"
+    echo "${releases_host}/${toolname}/${version}/${filename//arm64/arm}"
   else
-    echo "https://releases.hashicorp.com/${toolname}/${version}/${filename}"
+    echo "${releases_host}/${toolname}/${version}/${filename}"
   fi
 }
 
 check_sig() {
-  local -r distributer="https://releases.hashicorp.com"
-  local -r sha256sums_url="${distributer}/${toolname}/${version}/${toolname}_${version}_SHA256SUMS"
-  local -r signature_url="${distributer}/${toolname}/${version}/${toolname}_${version}_SHA256SUMS.sig"
+  local -r sha256sums_url="${releases_host}/${toolname}/${version}/${toolname}_${version}_SHA256SUMS"
+  local -r signature_url="${sha256sums_url}.sig"
+  #local -r signature_url="${sha256sums_url}.72D7468F.sig"
 
-  curl -s $sha256sums_url -o $TMP_DOWNLOAD_DIR/$(basename $sha256sums_url)
-  curl -s $signature_url -o $TMP_DOWNLOAD_DIR/$(basename $signature_url)
+  curl -s "${sha256sums_url}" -o "${TMP_DOWNLOAD_DIR}/$(basename "${sha256sums_url}")"
+  curl -s "${signature_url}" -o "${TMP_DOWNLOAD_DIR}/$(basename "${signature_url}")"
 
-  gpg --keyserver pool.sks-keyservers.net\
-      --recv-keys "C874 011F 0AB4 0511 0D02 1055 3436 5D94 72D7 468F"
+  gpg --keyserver pool.sks-keyservers.net \
+    --recv-keys "C874 011F 0AB4 0511 0D02 1055 3436 5D94 72D7 468F"
 
-  cd $TMP_DOWNLOAD_DIR;
-  gpg --verify-files $TMP_DOWNLOAD_DIR/$(basename $signature_url) &&\
-  sha256sum --ignore-missing -c $TMP_DOWNLOAD_DIR/$(basename $sha256sums_url) ||\
-  { echo "Verification ERROR" > /dev/stderr; exit 100 ; }
+  cd "${TMP_DOWNLOAD_DIR}"
+  # shellcheck disable=SC2015
+  gpg --verify \
+    "$(basename "${signature_url}")" \
+    "$(basename "${sha256sums_url}")" &&
+    sha256sum --ignore-missing -c "$(basename "${sha256sums_url}")" ||
+    {
+      echo "Verification ERROR" >/dev/stderr
+      exit 100
+    }
 }
-
 
 install "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${ASDF_INSTALL_PATH}"
