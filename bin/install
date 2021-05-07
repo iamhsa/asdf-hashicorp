@@ -101,8 +101,7 @@ get_download_url() {
 
 check_sig() {
   local -r sha256sums_url="${releases_host}/${toolname}/${version}/${toolname}_${version}_SHA256SUMS"
-  local -r signature_url="${sha256sums_url}.sig"
-  #local -r signature_url="${sha256sums_url}.72D7468F.sig"
+  local -r signature_url="${sha256sums_url}.72D7468F.sig"
 
   curl -s "${sha256sums_url}" -o "${TMP_DOWNLOAD_DIR}/$(basename "${sha256sums_url}")"
   curl -s "${signature_url}" -o "${TMP_DOWNLOAD_DIR}/$(basename "${signature_url}")"
